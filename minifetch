@@ -1,0 +1,60 @@
+#!/bin/bash
+
+#check if lolcat exists
+if echo lamamao | lolcat &> /dev/null; then
+	exists=1
+else
+	exists=0
+fi
+
+#variables go brrr
+name=$(whoami)
+hostname=$(cat /etc/hostname)
+rawuptime=$(cat /proc/uptime | head -n1 | sed -e 's/\s.*$//')
+kernel=$(uname -mrs)
+mem=$(free -m | awk 'NR==2{printf "%s / %s MB Used (%.2f%%)\n", $3,$2,$3*100/$2 }')
+distrodata=$(cat /etc/*-release | grep DISTRIB_DESCRIPTION | cut -c21-9999 | sed "s/^\(\"\)\(.*\)\1\$/\2/g")
+minutes=0
+hours=0
+days=0
+
+#round value
+rawuptime=$(printf '%.*f\n' 0 $rawuptime)
+
+#get time in readable format (yes overengineered but i couldn't care less)
+while (( rawuptime > 59 )); do
+	rawuptime=$(($rawuptime - 60))
+	minutes=$(($minutes + 1))
+done
+
+while (( minutes > 59 )); do
+	minutes=$(($minutes - 60))
+	hours=$(($hours + 1))
+done
+
+while (( hours > 23 )); do
+	hours=$(($hours - 24))
+	days=$(($days + 1))
+done
+
+seconds=$(($rawuptime))
+
+uptime=$(printf "%s" $days " Days, " $hours " Hours, " $minutes " Mins and " $seconds " Secs" )
+
+#layout of minifetch
+main=$(
+
+	printf "%s\n" "$name@$hostname"
+
+	#lines
+	for (( i=0; i+1<$(echo $hostname@$name | wc -m); i++ )); do printf "-"; done
+
+	printf "\n%s" "Uptime -> $uptime" "Kernel -> $kernel" "RAM -> $mem" "Distro -> $distrodata"
+)
+
+#use lolcat if available
+if [[ $exists = 1 ]]; then
+	printf "%s" "$main" | lolcat -p 0.5
+else
+	printf "%s" "$main"
+fi
