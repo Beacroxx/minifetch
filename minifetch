@@ -2,15 +2,15 @@
 
 #check if lolcat exists
 if echo lamamao | lolcat &> /dev/null; then
-	exists=1
+        exists=1
 else
-	exists=0
+        exists=0
 fi
 
 #variables go brrr
 name=$(whoami)
 hostname=$(cat /etc/hostname)
-rawuptime=$(cat /proc/uptime | head -n1 | sed -e 's/\s.*$//')
+rawuptime=$(head -n1 < /proc/uptime | sed -e 's/\s.*$//')
 kernel=$(uname -mrs)
 mem=$(free -m | awk 'NR==2{printf "%s / %s MB Used (%.2f%%)\n", $3,$2,$3*100/$2 }')
 distrodata=$(hostnamectl | grep Operating | cut -c19-999)
@@ -18,43 +18,52 @@ minutes=0
 hours=0
 days=0
 
+#forgot this retarded function LOL
+center() {
+        cols=$(tput cols)
+        for (( i=1; i<$#+1; i++ )); do
+                string=$(eval "echo $(printf "%s" "$" "$i")")
+                printf "%0.s " $(seq 0 1 $((cols/2-${#string}/2)))
+                printf "%s" "$string"
+                printf "\n"
+        done
+}
+
 #round value
-rawuptime=$(printf '%.*f\n' 0 $rawuptime)
+rawuptime=$(printf '%.*f\n' 0 "$rawuptime")
 
 #get time in readable format (yes overengineered but i couldn't care less)
 while (( rawuptime > 59 )); do
-	rawuptime=$(($rawuptime - 60))
-	minutes=$(($minutes + 1))
+        rawuptime=$((rawuptime - 60))
+        minutes=$((minutes + 1))
 done
 
 while (( minutes > 59 )); do
-	minutes=$(($minutes - 60))
-	hours=$(($hours + 1))
+        minutes=$((minutes - 60))
+        hours=$((hours + 1))
 done
 
 while (( hours > 23 )); do
-	hours=$(($hours - 24))
-	days=$(($days + 1))
+        hours=$((hours - 24))
+        days=$((days + 1))
 done
 
-seconds=$(($rawuptime))
+seconds=$((rawuptime))
 
 uptime=$(printf "%s" $days " Days, " $hours " Hours, " $minutes " Mins and " $seconds " Secs" )
 
 #layout of minifetch
 main=$(
-
-	printf "%s\n" "$name@$hostname"
-
-	#lines
-	for (( i=0; i+1<$(echo $hostname@$name | wc -m); i++ )); do printf "-"; done
-
-	printf "\n%s" "Uptime -> $uptime" "Kernel -> $kernel" "RAM -> $mem" "Distro -> $distrodata"
+        center "$name@$hostname"
+        #lines
+        center "$(for (( i=0; i+1<$(echo "$hostname@$name" | wc -m); i++ )); do printf "-"; done)"
+        center "Uptime -> $uptime" "Kernel -> $kernel" "RAM -> $mem" "Distro -> $distrodata"
 )
 
 #use lolcat if available
 if [[ $exists = 1 ]]; then
-	printf "%s" "$main" | lolcat -p 0.5
+        printf "%s\n" "$main" | lolcat -p 0.8
 else
-	printf "%s" "$main"
+        printf "%s" "$main"
 fi
+echo
