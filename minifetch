@@ -13,7 +13,7 @@ hostname=$(cat /etc/hostname)
 rawuptime=$(cat /proc/uptime | head -n1 | sed -e 's/\s.*$//')
 kernel=$(uname -mrs)
 mem=$(free -m | awk 'NR==2{printf "%s / %s MB Used (%.2f%%)\n", $3,$2,$3*100/$2 }')
-distrodata=$(cat /etc/*-release | grep DISTRIB_DESCRIPTION | cut -c21-9999 | sed "s/^\(\"\)\(.*\)\1\$/\2/g")
+distrodata=$(hostnamectl | grep Operating | cut -c19-999)
 minutes=0
 hours=0
 days=0
